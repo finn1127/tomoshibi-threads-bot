@@ -283,7 +283,15 @@
     font-size: 0.8rem;
     color: #a99a76;
     text-align: center;
+    line-height: 1.8;
   }
+  .cta-note strong{
+    color: var(--flame-soft);
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    user-select: all;
+  }
+  .cta-note.copy-status{ color: var(--flame-soft); }
 
   .inquiry-form{
     width: 100%;
@@ -573,10 +581,9 @@
     </label>
     <p class="form-error" id="form-error" hidden></p>
 
-    <a href="mailto:akari.neoshaman@gmail.com" class="cta-button" id="submit-link">灯りを受け取る</a>
-    <p class="cta-note">タップすると、メールアプリに下書きが開きます。内容を確認して送信してください。</p>
-    <button type="button" class="text-fallback" id="copy-fallback">メールアプリが開かない場合は、内容をコピーする</button>
-    <p class="cta-note" id="copy-status" hidden>コピーしました。お使いのメールアプリで akari.neoshaman@gmail.com 宛の新規メールを作り、貼り付けて送信してください。</p>
+    <button type="button" class="cta-button" id="submit-link">灯りを受け取る</button>
+    <p class="cta-note">相談内容がコピーされます。お使いのメールアプリで<br><strong>akari.neoshaman@gmail.com</strong> 宛に新規メールを作り、貼り付けて送信してください。</p>
+    <p class="cta-note copy-status" id="copy-status" hidden>コピーしました。メールアプリを開いて貼り付けてください。</p>
   </form>
 </section>
 
@@ -632,13 +639,6 @@
     return { subject: subject, body: body };
   }
 
-  function buildMailto() {
-    var msg = buildMessage();
-    return 'mailto:akari.neoshaman@gmail.com'
-      + '?subject=' + encodeURIComponent(msg.subject)
-      + '&body=' + encodeURIComponent(msg.body);
-  }
-
   function copyToClipboard(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       return navigator.clipboard.writeText(text);
@@ -666,10 +666,6 @@
     return missing;
   }
 
-  function refreshLink() {
-    link.setAttribute('href', buildMailto());
-  }
-
   function validate() {
     clearError();
     var fd = new FormData(form);
@@ -688,31 +684,18 @@
     return true;
   }
 
-  form.addEventListener('input', refreshLink);
-  form.addEventListener('change', refreshLink);
-  refreshLink();
-
-  link.addEventListener('click', function (e) {
-    if (!validate()) {
-      e.preventDefault();
-      return;
-    }
-    refreshLink();
-    // href is now correct; let the browser follow the real mailto link.
-  });
-
-  var copyBtn = document.getElementById('copy-fallback');
   var copyStatus = document.getElementById('copy-status');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', function () {
-      if (!validate()) return;
-      var msg = buildMessage();
-      var text = '宛先: akari.neoshaman@gmail.com\n件名: ' + msg.subject + '\n\n' + msg.body;
-      copyToClipboard(text).then(function () {
-        copyStatus.hidden = false;
-      });
+
+  link.addEventListener('click', function () {
+    copyStatus.hidden = true;
+    if (!validate()) return;
+    var msg = buildMessage();
+    var text = '宛先: akari.neoshaman@gmail.com\n件名: ' + msg.subject + '\n\n' + msg.body;
+    copyToClipboard(text).then(function () {
+      copyStatus.hidden = false;
+      copyStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
-  }
+  });
 })();
 </script>
 
