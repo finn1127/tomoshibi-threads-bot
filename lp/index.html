@@ -309,6 +309,7 @@
 
   .inquiry-form input[type="text"],
   .inquiry-form input[type="email"],
+  .inquiry-form select,
   .inquiry-form textarea{
     font: inherit;
     font-size: 0.98rem;
@@ -319,38 +320,41 @@
     padding: 0.75em 0.85em;
     resize: vertical;
   }
+  .inquiry-form select{
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--flame-soft) 50%),
+                       linear-gradient(135deg, var(--flame-soft) 50%, transparent 50%);
+    background-position: calc(100% - 1.3em) center, calc(100% - 0.9em) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+  .inquiry-form select option{ color: #15131f; }
+
   .inquiry-form input::placeholder,
   .inquiry-form textarea::placeholder{ color: #7d7290; }
 
   .inquiry-form input:focus,
+  .inquiry-form select:focus,
   .inquiry-form textarea:focus{
     outline: none;
     border-color: var(--flame);
     box-shadow: 0 0 0 3px rgba(232,169,76,0.18);
   }
 
-  .radio-row{
-    display: flex;
-    gap: 0.8rem;
-    flex-wrap: wrap;
+  .field-row{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
   }
-  .radio-pill{
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    font-size: 0.92rem;
-    color: var(--paper);
-    background: rgba(247,240,226,0.06);
-    border: 1px solid var(--ink-line);
-    padding: 0.6em 1.1em;
-    border-radius: 999px;
-    cursor: pointer;
+  @media (max-width: 480px){
+    .field-row{ grid-template-columns: 1fr; }
   }
-  .radio-pill:has(input:checked){
-    border-color: var(--flame);
-    background: rgba(232,169,76,0.14);
+
+  .form-error{
+    margin: -0.6rem 0 0;
+    font-size: 0.85rem;
+    color: #e8896b;
   }
-  .radio-pill input{ accent-color: var(--flame); }
 
   .consent{
     display: flex;
@@ -474,38 +478,95 @@
   <span class="eyebrow">Begin</span>
   <h2>あなたのために、<br>風に尋ねます。</h2>
 
-  <form class="inquiry-form" id="inquiry-form">
-    <div class="field">
-      <label for="f-name">呼んでほしい名前</label>
-      <input type="text" id="f-name" name="name" required>
-    </div>
+  <form class="inquiry-form" id="inquiry-form" novalidate>
     <div class="field">
       <label for="f-email">返信用メールアドレス</label>
       <input type="email" id="f-email" name="email" required>
     </div>
     <div class="field">
-      <label>ご相談の分野</label>
-      <div class="radio-row">
-        <label class="radio-pill"><input type="radio" name="theme" value="恋のこと" required> 恋のこと</label>
-        <label class="radio-pill"><input type="radio" name="theme" value="お金のこと"> お金のこと</label>
+      <label for="f-email2">返信用メールアドレス（確認用）</label>
+      <input type="email" id="f-email2" name="email2" required>
+    </div>
+    <div class="field">
+      <label for="f-name">本名または呼んでほしい名前</label>
+      <input type="text" id="f-name" name="name" required>
+    </div>
+    <div class="field">
+      <label for="f-category">相談したいことの分野</label>
+      <select id="f-category" name="category" required>
+        <option value="" disabled selected hidden>選んでな</option>
+        <optgroup label="恋のこと">
+          <option>復縁</option>
+          <option>片思い</option>
+          <option>交際中</option>
+          <option>夫婦関係</option>
+          <option>別れ</option>
+          <option>連絡</option>
+          <option>関係修復</option>
+          <option>お相手の気持ち</option>
+          <option>関係の見通し</option>
+          <option>行動の選択</option>
+        </optgroup>
+        <optgroup label="お金のこと">
+          <option>収入・仕事運</option>
+          <option>転職・独立の判断</option>
+          <option>出費・浪費のクセ</option>
+          <option>金運の流れ</option>
+          <option>お金にまつわる人間関係</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-relation">お相手との今の関係</label>
+      <select id="f-relation" name="relation" required>
+        <option value="" disabled selected hidden>選んでな</option>
+        <option>現在交際中</option>
+        <option>以前交際していた</option>
+        <option>片思い</option>
+        <option>関係が不明確</option>
+        <option>配偶者</option>
+        <option>友人</option>
+        <option>知人</option>
+        <option>家族</option>
+        <option>職場関係</option>
+        <option>特定の相手はいない（お金のご相談など）</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="f-age">あなたの年代（任意）</label>
+        <select id="f-age" name="age">
+          <option value="">選ばなくてもいいで</option>
+          <option>10代</option><option>20代</option><option>30代</option>
+          <option>40代</option><option>50代</option><option>60代〜</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-age-partner">お相手の年代（任意）</label>
+        <select id="f-age-partner" name="agePartner">
+          <option value="">選ばなくてもいいで</option>
+          <option>10代</option><option>20代</option><option>30代</option>
+          <option>40代</option><option>50代</option><option>60代〜</option>
+        </select>
       </div>
     </div>
     <div class="field">
-      <label for="f-situation">今の状況・直近であったこと</label>
+      <label for="f-situation">今の状況、直近であったこと</label>
       <textarea id="f-situation" name="situation" rows="3" required></textarea>
     </div>
     <div class="field">
-      <label for="f-question">今回、一番知りたいこと</label>
+      <label for="f-question">今回の鑑定で一番知りたいこと</label>
       <textarea id="f-question" name="question" rows="2" required></textarea>
     </div>
     <div class="field">
-      <label for="f-hope">本当はどうなりたいか</label>
+      <label for="f-hope">今後望んでる関係や状態、本当はどうなりたいか</label>
       <textarea id="f-hope" name="hope" rows="2" required></textarea>
     </div>
     <label class="consent">
       <input type="checkbox" name="consent" required>
-      医療・法律・投資の断定・生死・妊娠出産・個人の特定や追跡に関わる相談ではないことを確認しました
+      「お願いとお約束」に書かれている、お受けできない相談には当てはまらないことを確認しました
     </label>
+    <p class="form-error" id="form-error" hidden></p>
 
     <button type="submit" class="cta-button">灯りを受け取る</button>
     <p class="cta-note">送信すると、メールアプリに下書きが開きます。内容を確認して送信してください。</p>
@@ -515,23 +576,44 @@
 <script>
 (function () {
   var form = document.getElementById('inquiry-form');
+  var errorEl = document.getElementById('form-error');
   if (!form) return;
+
+  function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.hidden = false;
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
+    errorEl.hidden = true;
+
+    if (!form.reportValidity()) return;
+
     var fd = new FormData(form);
+    var email = (fd.get('email') || '').toString().trim();
+    var email2 = (fd.get('email2') || '').toString().trim();
+    if (email !== email2) {
+      showError('メールアドレスが一致しません。もう一度ご確認ください。');
+      return;
+    }
+
     var name = (fd.get('name') || '').toString();
     var lines = [
       'お名前: ' + name,
-      '返信用メール: ' + fd.get('email'),
-      'ご相談の分野: ' + (fd.get('theme') || ''),
+      '返信用メール: ' + email,
+      '相談したいことの分野: ' + (fd.get('category') || ''),
+      'お相手との今の関係: ' + (fd.get('relation') || ''),
+      'あなたの年代: ' + (fd.get('age') || '(未回答)'),
+      'お相手の年代: ' + (fd.get('agePartner') || '(未回答)'),
       '',
-      '【今の状況・直近であったこと】',
+      '【今の状況、直近であったこと】',
       fd.get('situation'),
       '',
-      '【今回、一番知りたいこと】',
+      '【今回の鑑定で一番知りたいこと】',
       fd.get('question'),
       '',
-      '【本当はどうなりたいか】',
+      '【今後望んでる関係や状態、本当はどうなりたいか】',
       fd.get('hope')
     ];
     var body = lines.join('\n');
