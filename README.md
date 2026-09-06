@@ -7,7 +7,7 @@ GitHub Actions + Claude API + Threads API で、占いアカウントの投稿�
 
 ```
 .github/workflows/post.yml   GitHub Actionsの定時実行設定（毎日 朝8:00/昼12:30/夜20:00 JST）
-scripts/threads.py           Threads APIクライアント（whoami / post / refresh）
+scripts/threads.py           Threads APIクライアント（auth / whoami / post / refresh）
 scripts/generate_and_post.py Claude APIで投稿文を生成し、Threadsに投稿するメイン処理
 .env.example                 ローカル動作確認用の環境変数テンプレート
 ```
@@ -19,30 +19,48 @@ scripts/generate_and_post.py Claude APIで投稿文を生成し、Threadsに投�
 
 ### 1. Threads APIの認証情報を取得（あなたの操作が必要・ログイン必須）
 
+Threads APIにはダッシュボードに「トークンを生成」ボタンは無く、OAuth認可という
+手順を踏む必要があります。手順3以降は`scripts/threads.py auth`が自動でやって
+くれるので、curlを手打ちする必要はありません。
+
 1. Threadsアプリ → プロフィール → 設定 → アカウントの種類を切り替える →
    「プロフェッショナルアカウント」にする
 2. https://developers.facebook.com/apps → 「アプリを作成」→ 種類は「その他」
-3. アプリダッシュボード →「製品を追加」→「Threads API」を追加
-4. 「Threads API」→「API設定」画面で「Threadsテスターを追加」→ 自分の
-   Threadsアカウントを招待 → Threadsアプリ側の設定 → アカウント →
-   プロフェッショナルの各種設定から招待を承認
-5. 同じ画面の「トークンを生成」で `threads_basic` と
-   `threads_content_publish` をチェックしてアクセストークンを生成
-   → このトークンは**チャットに貼らず**、直接 `.env` かGitHub Secretsに保存
+   →「製品を追加」→「Threads API」を追加
+3. **自分をテスターとして追加する**
+   - App Dashboard 左メニュー →「App roles」（アプリの役割）→「Roles」タブ
+   - 「Add People」ボタン →ロールで「Threads Tester」を選択→自分のThreads
+     ユーザー名を入力して招待を送る
+   - スマホのThreadsアプリ →プロフィール→設定とアクティビティ→アカウント→
+     「ウェブサイトの権限」(Website permissions) →届いている招待を承認
+4. **リダイレクトURLを登録する**
+   - App Dashboard →「Threads API」→「Settings」タブ →
+     「Redirect Callback URLs」に `https://localhost/` を追加して保存
+5. **App IDとApp Secretを控える**
+   - App Dashboard →「App settings」→「Basic」に表示されている
+     Threads App ID / Threads App Secret
+6. **トークンを取得する**（チャットに秘密情報を貼らずに済むよう対話式）
+   ```bash
+   python3 scripts/threads.py auth
+   ```
+   App ID / App Secretを入力すると認可用URLが表示されるので、ブラウザで開いて
+   ログイン・許可 → リダイレクト先URLの `code=` の値を貼り付ける、という流れ
+   で長期アクセストークンとユーザーIDが自動で`.env`に保存されます。
 
 ### 2. Anthropic APIキーを取得
 
 https://console.anthropic.com/ → API Keys → 新規作成
 （Claude Codeのサブスクリプションとは別に、API従量課金が発生します）
 
-### 3. ローカルで一度だけ動作確認（任意だが推奨）
+### 3. ローカルで一度だけ動作確認（推奨）
 
 ```bash
 cp .env.example .env
-# .env を開いて THREADS_ACCESS_TOKEN を貼り付け
+python3 scripts/threads.py auth
+# 手順1-6で取得したApp ID/Secretを入力 → .env に自動保存される
 
 python3 scripts/threads.py whoami
-# 表示された id を .env の THREADS_USER_ID に追記
+# アカウント情報が表示されればOK
 
 python3 scripts/threads.py post "テスト投稿です"
 # Threadsに実際に投稿されるので確認したら削除してOK

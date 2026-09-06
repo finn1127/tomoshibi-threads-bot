@@ -3,6 +3,7 @@
 Threads API クライアント（占いアカウント「灯」用）
 
 サブコマンド:
+  auth            OAuth認可フローを対話式に実行し、長期アクセストークンを取得して .env に保存する
   whoami          トークンが有効か確認し、アカウント情報を表示する
   post <text>     テキストをThreadsに投稿する
   refresh         長期アクセストークンを更新し .env に書き戻す
@@ -112,6 +113,80 @@ def cmd_post(env, text: str):
     print(f"投稿完了: post id = {published['id']}")
 
 
+REDIRECT_URI = "https://localhost/"
+
+
+def cmd_auth():
+    import getpass
+
+    print("Meta App Dashboard > 左メニュー「App settings」>「Basic」で確認できる値を入力してください。\n")
+    app_id = input("Threads App ID: ").strip()
+    app_secret = getpass.getpass("Threads App Secret（入力は画面に表示されません）: ").strip()
+
+    authorize_url = (
+        "https://threads.net/oauth/authorize"
+        f"?client_id={urllib.parse.quote(app_id)}"
+        f"&redirect_uri={urllib.parse.quote(REDIRECT_URI, safe='')}"
+        "&scope=threads_basic,threads_content_publish"
+        "&response_type=code"
+    )
+    print("\n事前に「App Dashboard > Threads API > Settings」の")
+    print(f"「Redirect Callback URLs」に {REDIRECT_URI} を追加・保存しておいてください。\n")
+    print("1. 次のURLをブラウザで開き、Threadsアカウントでログイン・許可してください:\n")
+    print(f"   {authorize_url}\n")
+    print("2. 許可すると https://localhost/?code=XXXX...#_ のようなURLに")
+    print("   遷移しようとします（ページが表示されずエラーになりますが問題ありません）。")
+    print("   アドレスバーに表示された code= から #_ の手前までの文字列をコピーしてください。\n")
+    code = input("コピーした code の値を貼り付けてください: ").strip()
+
+    token_data = urllib.parse.urlencode(
+        {
+            "client_id": app_id,
+            "client_secret": app_secret,
+            "grant_type": "authorization_code",
+            "redirect_uri": REDIRECT_URI,
+            "code": code,
+        }
+    ).encode()
+    req = urllib.request.Request(
+        "https://graph.threads.net/oauth/access_token", data=token_data, method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req) as resp:
+            short_lived = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        print(f"短期トークンの取得に失敗しました: {e.read().decode()}", file=sys.stderr)
+        sys.exit(1)
+
+    short_token = short_lived.get("access_token")
+    if not short_token:
+        print(f"短期トークンの取得に失敗しました: {short_lived}", file=sys.stderr)
+        sys.exit(1)
+
+    long_lived = api_request(
+        "GET",
+        "/access_token",
+        {
+            "grant_type": "th_exchange_token",
+            "client_secret": app_secret,
+            "access_token": short_token,
+        },
+    )
+    long_token = long_lived.get("access_token")
+    if not long_token:
+        print(f"長期トークンへの交換に失敗しました: {long_lived}", file=sys.stderr)
+        sys.exit(1)
+
+    save_env({"THREADS_ACCESS_TOKEN": long_token})
+    print(f"\n長期アクセストークンを .env に保存しました（有効期限: 約{long_lived.get('expires_in', '?')}秒後）")
+
+    who = api_request("GET", "/me", {"fields": "id,username", "access_token": long_token})
+    print(json.dumps(who, ensure_ascii=False))
+    if who.get("id"):
+        save_env({"THREADS_USER_ID": who["id"]})
+        print("THREADS_USER_ID も .env に保存しました")
+
+
 def cmd_refresh(env):
     token = env.get("THREADS_ACCESS_TOKEN")
     if not token:
@@ -136,7 +211,9 @@ def main():
         print(__doc__)
         sys.exit(1)
     cmd = sys.argv[1]
-    if cmd == "whoami":
+    if cmd == "auth":
+        cmd_auth()
+    elif cmd == "whoami":
         cmd_whoami(env)
     elif cmd == "post":
         if len(sys.argv) < 3:
