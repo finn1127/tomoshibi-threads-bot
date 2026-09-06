@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""
+Threads API クライアント（占いアカウント「灯」用）
+
+サブコマンド:
+  whoami          トークンが有効か確認し、アカウント情報を表示する
+  post <text>     テキストをThreadsに投稿する
+  refresh         長期アクセストークンを更新し .env に書き戻す
+
+認証情報は同じディレクトリの .env から読む（THREADS_ACCESS_TOKEN, THREADS_USER_ID）。
+"""
+import json
+import os
+import re
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+API_BASE = "https://graph.threads.net/v1.0"
+ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
+
+
+def load_env():
+    """.env（ローカル開発用）があれば読み、無ければ環境変数（GitHub Actions等）を使う"""
+    env = dict(os.environ)
+    if ENV_PATH.exists():
+        for line in ENV_PATH.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            env[key.strip()] = value.strip().strip('"').strip("'")
+    return env
+
+
+def save_env(updates: dict):
+    lines = []
+    seen = set()
+    if ENV_PATH.exists():
+        for line in ENV_PATH.read_text().splitlines():
+            m = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)=", line)
+            if m and m.group(1) in updates:
+                key = m.group(1)
+                lines.append(f"{key}={updates[key]}")
+                seen.add(key)
+            else:
+                lines.append(line)
+    for key, value in updates.items():
+        if key not in seen:
+            lines.append(f"{key}={value}")
+    ENV_PATH.write_text("\n".join(lines) + "\n")
+
+
+def api_request(method: str, path: str, params: dict):
+    url = f"{API_BASE}{path}"
+    data = None
+    if method == "GET":
+        url += "?" + urllib.parse.urlencode(params)
+    else:
+        data = urllib.parse.urlencode(params).encode()
+    req = urllib.request.Request(url, data=data, method=method)
+    try:
+        with urllib.request.urlopen(req) as resp:
+            return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        print(f"APIエラー ({e.code}): {body}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_whoami(env):
+    token = env.get("THREADS_ACCESS_TOKEN")
+    if not token:
+        print(".env に THREADS_ACCESS_TOKEN がありません", file=sys.stderr)
+        sys.exit(1)
+    result = api_request("GET", "/me", {"fields": "id,username,threads_profile_picture_url", "access_token": token})
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+def cmd_post(env, text: str):
+    token = env.get("THREADS_ACCESS_TOKEN")
+    user_id = env.get("THREADS_USER_ID")
+    if not token or not user_id:
+        print(".env に THREADS_ACCESS_TOKEN / THREADS_USER_ID が必要です", file=sys.stderr)
+        sys.exit(1)
+
+    created = api_request(
+        "POST",
+        f"/{user_id}/threads",
+        {"media_type": "TEXT", "text": text, "access_token": token},
+    )
+    creation_id = created.get("id")
+    if not creation_id:
+        print(f"投稿コンテナの作成に失敗しました: {created}", file=sys.stderr)
+        sys.exit(1)
+
+    import time
+
+    time.sleep(5)  # Meta推奨: publish前に数秒待つ
+
+    published = api_request(
+        "POST",
+        f"/{user_id}/threads_publish",
+        {"creation_id": creation_id, "access_token": token},
+    )
+    if "id" not in published:
+        print(f"投稿の公開に失敗しました: {published}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"投稿完了: post id = {published['id']}")
+
+
+def cmd_refresh(env):
+    token = env.get("THREADS_ACCESS_TOKEN")
+    if not token:
+        print(".env に THREADS_ACCESS_TOKEN がありません", file=sys.stderr)
+        sys.exit(1)
+    result = api_request(
+        "GET",
+        "/refresh_access_token",
+        {"grant_type": "th_refresh_token", "access_token": token},
+    )
+    new_token = result.get("access_token")
+    if not new_token:
+        print(f"更新に失敗しました: {result}", file=sys.stderr)
+        sys.exit(1)
+    save_env({"THREADS_ACCESS_TOKEN": new_token})
+    print(f"トークンを更新しました（有効期限: 約{result.get('expires_in', '?')}秒後）")
+
+
+def main():
+    env = load_env()
+    if len(sys.argv) < 2:
+        print(__doc__)
+        sys.exit(1)
+    cmd = sys.argv[1]
+    if cmd == "whoami":
+        cmd_whoami(env)
+    elif cmd == "post":
+        if len(sys.argv) < 3:
+            print("使い方: threads.py post \"投稿テキスト\"", file=sys.stderr)
+            sys.exit(1)
+        cmd_post(env, sys.argv[2])
+    elif cmd == "refresh":
+        cmd_refresh(env)
+    else:
+        print(f"不明なコマンド: {cmd}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
