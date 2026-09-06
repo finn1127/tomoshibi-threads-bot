@@ -118,10 +118,15 @@ REDIRECT_URI = "https://localhost/"
 
 def cmd_auth():
     import getpass
+    import subprocess
+    import webbrowser
 
     print("Meta App Dashboard > 左メニュー「App settings」>「Basic」で確認できる値を入力してください。\n")
     app_id = input("Threads App ID: ").strip()
     app_secret = getpass.getpass("Threads App Secret（入力は画面に表示されません）: ").strip()
+    if not app_id or not app_secret:
+        print("App ID / App Secret が空です。もう一度実行してください。", file=sys.stderr)
+        sys.exit(1)
 
     authorize_url = (
         "https://threads.net/oauth/authorize"
@@ -130,14 +135,37 @@ def cmd_auth():
         "&scope=threads_basic,threads_content_publish"
         "&response_type=code"
     )
-    print("\n事前に「App Dashboard > Threads API > Settings」の")
-    print(f"「Redirect Callback URLs」に {REDIRECT_URI} を追加・保存しておいてください。\n")
-    print("1. 次のURLをブラウザで開き、Threadsアカウントでログイン・許可してください:\n")
-    print(f"   {authorize_url}\n")
+    print("\n事前に「App Dashboard > アプリの設定 > 詳細設定」の")
+    print(f"「コールバックURLを許可」に {REDIRECT_URI} を追加・保存しておいてください。\n")
+
+    copied = False
+    try:
+        subprocess.run(["pbcopy"], input=authorize_url.encode(), check=True)
+        copied = True
+    except Exception:
+        pass
+
+    opened = False
+    try:
+        opened = webbrowser.open(authorize_url)
+    except Exception:
+        pass
+
+    print("1. 認可用URLをブラウザで開いて、Threadsアカウントでログイン・許可してください。")
+    if opened:
+        print("   → ブラウザを自動で開きました。開かなければ下のURLを使ってください。")
+    if copied:
+        print("   → URLはクリップボードにコピー済みです（そのまま貼り付け可）。")
+    print(f"\n   {authorize_url}\n")
+    print("   ※ 手動でコピーする場合、URLが長く途中で切れやすいので、")
+    print("     可能な限り上記のクリップボードコピー機能を使ってください。\n")
     print("2. 許可すると https://localhost/?code=XXXX...#_ のようなURLに")
     print("   遷移しようとします（ページが表示されずエラーになりますが問題ありません）。")
     print("   アドレスバーに表示された code= から #_ の手前までの文字列をコピーしてください。\n")
     code = input("コピーした code の値を貼り付けてください: ").strip()
+    if not code:
+        print("code が空です。もう一度実行してください。", file=sys.stderr)
+        sys.exit(1)
 
     token_data = urllib.parse.urlencode(
         {
