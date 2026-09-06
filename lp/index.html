@@ -285,14 +285,6 @@
     text-align: center;
     line-height: 1.8;
   }
-  .cta-note strong{
-    color: var(--flame-soft);
-    font-size: 0.95rem;
-    letter-spacing: 0.02em;
-    user-select: all;
-  }
-  .cta-note.copy-status{ color: var(--flame-soft); }
-
   .inquiry-form{
     width: 100%;
     max-width: 440px;
@@ -384,18 +376,6 @@
     border: none;
     cursor: pointer;
     margin-top: 0.6rem;
-  }
-
-  .text-fallback{
-    align-self: center;
-    background: none;
-    border: none;
-    color: #a99a76;
-    font: inherit;
-    font-size: 0.82rem;
-    text-decoration: underline;
-    cursor: pointer;
-    padding: 0;
   }
 
   footer{
@@ -503,7 +483,7 @@
   <span class="eyebrow">Begin</span>
   <h2>あなたのために、<br>風に尋ねます。</h2>
 
-  <form class="inquiry-form" id="inquiry-form" novalidate>
+  <form class="inquiry-form" id="inquiry-form" method="POST" action="https://formspree.io/f/YOUR_FORM_ID">
     <div class="field">
       <label for="f-email">返信用メールアドレス</label>
       <input type="email" id="f-email" name="email" required>
@@ -581,9 +561,10 @@
     </label>
     <p class="form-error" id="form-error" hidden></p>
 
-    <button type="button" class="cta-button" id="submit-link">灯りを受け取る</button>
-    <p class="cta-note">相談内容がコピーされます。お使いのメールアプリで<br><strong>akari.neoshaman@gmail.com</strong> 宛に新規メールを作り、貼り付けて送信してください。</p>
-    <p class="cta-note copy-status" id="copy-status" hidden>コピーしました。メールアプリを開いて貼り付けてください。</p>
+    <input type="hidden" name="_subject" value="灯 個別鑑定のご相談">
+
+    <button type="submit" class="cta-button">灯りを受け取る</button>
+    <p class="cta-note">送信すると、灯（あかり）に直接届きます。</p>
   </form>
 </section>
 
@@ -591,110 +572,18 @@
 (function () {
   var form = document.getElementById('inquiry-form');
   var errorEl = document.getElementById('form-error');
-  var link = document.getElementById('submit-link');
-  if (!form || !link) return;
+  if (!form) return;
 
-  var REQUIRED_LABELS = {
-    email: '返信用メールアドレス',
-    email2: '返信用メールアドレス（確認用）',
-    name: '本名または呼んでほしい名前',
-    category: '相談したいことの分野',
-    situation: '今の状況、直近であったこと',
-    question: '今回の鑑定で一番知りたいこと',
-    hope: '今後望んでる関係や状態、本当はどうなりたいか'
-  };
-
-  function showError(msg) {
-    errorEl.textContent = msg;
-    errorEl.hidden = false;
-  }
-
-  function clearError() {
+  form.addEventListener('submit', function (e) {
     errorEl.hidden = true;
-  }
-
-  function buildMessage() {
-    var fd = new FormData(form);
-    var name = (fd.get('name') || '').toString();
-    var email = (fd.get('email') || '').toString().trim();
-    var lines = [
-      'お名前: ' + name,
-      '返信用メール: ' + email,
-      '相談したいことの分野: ' + (fd.get('category') || ''),
-      'お相手との今の関係: ' + (fd.get('relation') || ''),
-      'あなたの年代: ' + (fd.get('age') || '(未回答)'),
-      'お相手の年代: ' + (fd.get('agePartner') || '(未回答)'),
-      '',
-      '【今の状況、直近であったこと】',
-      fd.get('situation'),
-      '',
-      '【今回の鑑定で一番知りたいこと】',
-      fd.get('question'),
-      '',
-      '【今後望んでる関係や状態、本当はどうなりたいか】',
-      fd.get('hope')
-    ];
-    var body = lines.join('\n');
-    var subject = '灯 個別鑑定のご相談' + (name ? '（' + name + '様）' : '');
-    return { subject: subject, body: body };
-  }
-
-  function copyToClipboard(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text);
-    }
-    var ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand('copy'); } catch (err) { /* noop */ }
-    document.body.removeChild(ta);
-    return Promise.resolve();
-  }
-
-  function findMissing() {
-    var fd = new FormData(form);
-    var missing = [];
-    for (var key in REQUIRED_LABELS) {
-      if (!(fd.get(key) || '').toString().trim()) missing.push(REQUIRED_LABELS[key]);
-    }
-    if (!form.querySelector('input[name=consent]').checked) {
-      missing.push('「お願いとお約束」への同意チェック');
-    }
-    return missing;
-  }
-
-  function validate() {
-    clearError();
-    var fd = new FormData(form);
-    var email = (fd.get('email') || '').toString().trim();
-    var email2 = (fd.get('email2') || '').toString().trim();
-
-    var missing = findMissing();
-    if (missing.length) {
-      showError('次の項目が未入力です: ' + missing.join('、'));
-      return false;
-    }
+    var email = form.email.value.trim();
+    var email2 = form.email2.value.trim();
     if (email !== email2) {
-      showError('メールアドレスが一致しません。もう一度ご確認ください。');
-      return false;
+      e.preventDefault();
+      errorEl.textContent = 'メールアドレスが一致しません。もう一度ご確認ください。';
+      errorEl.hidden = false;
+      form.email2.focus();
     }
-    return true;
-  }
-
-  var copyStatus = document.getElementById('copy-status');
-
-  link.addEventListener('click', function () {
-    copyStatus.hidden = true;
-    if (!validate()) return;
-    var msg = buildMessage();
-    var text = '宛先: akari.neoshaman@gmail.com\n件名: ' + msg.subject + '\n\n' + msg.body;
-    copyToClipboard(text).then(function () {
-      copyStatus.hidden = false;
-      copyStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
   });
 })();
 </script>
