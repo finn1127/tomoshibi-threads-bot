@@ -378,6 +378,18 @@
     margin-top: 0.6rem;
   }
 
+  .text-fallback{
+    align-self: center;
+    background: none;
+    border: none;
+    color: #a99a76;
+    font: inherit;
+    font-size: 0.82rem;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+
   footer{
     background: var(--ink-2);
     text-align: center;
@@ -561,8 +573,10 @@
     </label>
     <p class="form-error" id="form-error" hidden></p>
 
-    <button type="submit" class="cta-button">灯りを受け取る</button>
-    <p class="cta-note">送信すると、メールアプリに下書きが開きます。内容を確認して送信してください。</p>
+    <a href="mailto:akari.neoshaman@gmail.com" class="cta-button" id="submit-link">灯りを受け取る</a>
+    <p class="cta-note">タップすると、メールアプリに下書きが開きます。内容を確認して送信してください。</p>
+    <button type="button" class="text-fallback" id="copy-fallback">メールアプリが開かない場合は、内容をコピーする</button>
+    <p class="cta-note" id="copy-status" hidden>コピーしました。お使いのメールアプリで akari.neoshaman@gmail.com 宛の新規メールを作り、貼り付けて送信してください。</p>
   </form>
 </section>
 
@@ -570,28 +584,32 @@
 (function () {
   var form = document.getElementById('inquiry-form');
   var errorEl = document.getElementById('form-error');
-  if (!form) return;
+  var link = document.getElementById('submit-link');
+  if (!form || !link) return;
+
+  var REQUIRED_LABELS = {
+    email: '返信用メールアドレス',
+    email2: '返信用メールアドレス（確認用）',
+    name: '本名または呼んでほしい名前',
+    category: '相談したいことの分野',
+    situation: '今の状況、直近であったこと',
+    question: '今回の鑑定で一番知りたいこと',
+    hope: '今後望んでる関係や状態、本当はどうなりたいか'
+  };
 
   function showError(msg) {
     errorEl.textContent = msg;
     errorEl.hidden = false;
   }
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
+  function clearError() {
     errorEl.hidden = true;
+  }
 
-    if (!form.reportValidity()) return;
-
+  function buildMessage() {
     var fd = new FormData(form);
-    var email = (fd.get('email') || '').toString().trim();
-    var email2 = (fd.get('email2') || '').toString().trim();
-    if (email !== email2) {
-      showError('メールアドレスが一致しません。もう一度ご確認ください。');
-      return;
-    }
-
     var name = (fd.get('name') || '').toString();
+    var email = (fd.get('email') || '').toString().trim();
     var lines = [
       'お名前: ' + name,
       '返信用メール: ' + email,
@@ -611,11 +629,90 @@
     ];
     var body = lines.join('\n');
     var subject = '灯 個別鑑定のご相談' + (name ? '（' + name + '様）' : '');
-    var mailto = 'mailto:akari.neoshaman@gmail.com'
-      + '?subject=' + encodeURIComponent(subject)
-      + '&body=' + encodeURIComponent(body);
-    window.location.href = mailto;
+    return { subject: subject, body: body };
+  }
+
+  function buildMailto() {
+    var msg = buildMessage();
+    return 'mailto:akari.neoshaman@gmail.com'
+      + '?subject=' + encodeURIComponent(msg.subject)
+      + '&body=' + encodeURIComponent(msg.body);
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (err) { /* noop */ }
+    document.body.removeChild(ta);
+    return Promise.resolve();
+  }
+
+  function findMissing() {
+    var fd = new FormData(form);
+    var missing = [];
+    for (var key in REQUIRED_LABELS) {
+      if (!(fd.get(key) || '').toString().trim()) missing.push(REQUIRED_LABELS[key]);
+    }
+    if (!form.querySelector('input[name=consent]').checked) {
+      missing.push('「お願いとお約束」への同意チェック');
+    }
+    return missing;
+  }
+
+  function refreshLink() {
+    link.setAttribute('href', buildMailto());
+  }
+
+  function validate() {
+    clearError();
+    var fd = new FormData(form);
+    var email = (fd.get('email') || '').toString().trim();
+    var email2 = (fd.get('email2') || '').toString().trim();
+
+    var missing = findMissing();
+    if (missing.length) {
+      showError('次の項目が未入力です: ' + missing.join('、'));
+      return false;
+    }
+    if (email !== email2) {
+      showError('メールアドレスが一致しません。もう一度ご確認ください。');
+      return false;
+    }
+    return true;
+  }
+
+  form.addEventListener('input', refreshLink);
+  form.addEventListener('change', refreshLink);
+  refreshLink();
+
+  link.addEventListener('click', function (e) {
+    if (!validate()) {
+      e.preventDefault();
+      return;
+    }
+    refreshLink();
+    // href is now correct; let the browser follow the real mailto link.
   });
+
+  var copyBtn = document.getElementById('copy-fallback');
+  var copyStatus = document.getElementById('copy-status');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function () {
+      if (!validate()) return;
+      var msg = buildMessage();
+      var text = '宛先: akari.neoshaman@gmail.com\n件名: ' + msg.subject + '\n\n' + msg.body;
+      copyToClipboard(text).then(function () {
+        copyStatus.hidden = false;
+      });
+    });
+  }
 })();
 </script>
 
