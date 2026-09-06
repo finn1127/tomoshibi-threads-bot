@@ -282,6 +282,96 @@
     margin-top: 1.3rem;
     font-size: 0.8rem;
     color: #a99a76;
+    text-align: center;
+  }
+
+  .inquiry-form{
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .field{
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .field > label{
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    color: #cdbe9c;
+  }
+
+  .inquiry-form input[type="text"],
+  .inquiry-form input[type="email"],
+  .inquiry-form textarea{
+    font: inherit;
+    font-size: 0.98rem;
+    color: var(--paper);
+    background: rgba(247,240,226,0.06);
+    border: 1px solid var(--ink-line);
+    border-radius: 2px;
+    padding: 0.75em 0.85em;
+    resize: vertical;
+  }
+  .inquiry-form input::placeholder,
+  .inquiry-form textarea::placeholder{ color: #7d7290; }
+
+  .inquiry-form input:focus,
+  .inquiry-form textarea:focus{
+    outline: none;
+    border-color: var(--flame);
+    box-shadow: 0 0 0 3px rgba(232,169,76,0.18);
+  }
+
+  .radio-row{
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .radio-pill{
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.92rem;
+    color: var(--paper);
+    background: rgba(247,240,226,0.06);
+    border: 1px solid var(--ink-line);
+    padding: 0.6em 1.1em;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .radio-pill:has(input:checked){
+    border-color: var(--flame);
+    background: rgba(232,169,76,0.14);
+  }
+  .radio-pill input{ accent-color: var(--flame); }
+
+  .consent{
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7em;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: #b9ac8d;
+    cursor: pointer;
+  }
+  .consent input{
+    accent-color: var(--flame);
+    margin-top: 0.25em;
+    flex-shrink: 0;
+  }
+
+  .inquiry-form .cta-button{
+    align-self: center;
+    border: none;
+    cursor: pointer;
+    margin-top: 0.6rem;
   }
 
   footer{
@@ -383,11 +473,76 @@
 <section class="cta-section">
   <span class="eyebrow">Begin</span>
   <h2>あなたのために、<br>風に尋ねます。</h2>
-  <a class="cta-button" href="#" id="cta-link">
-    灯りを受け取る
-  </a>
-  <p class="cta-note">フォームへ移動します（所要時間 約3分）</p>
+
+  <form class="inquiry-form" id="inquiry-form">
+    <div class="field">
+      <label for="f-name">呼んでほしい名前</label>
+      <input type="text" id="f-name" name="name" required>
+    </div>
+    <div class="field">
+      <label for="f-email">返信用メールアドレス</label>
+      <input type="email" id="f-email" name="email" required>
+    </div>
+    <div class="field">
+      <label>ご相談の分野</label>
+      <div class="radio-row">
+        <label class="radio-pill"><input type="radio" name="theme" value="恋のこと" required> 恋のこと</label>
+        <label class="radio-pill"><input type="radio" name="theme" value="お金のこと"> お金のこと</label>
+      </div>
+    </div>
+    <div class="field">
+      <label for="f-situation">今の状況・直近であったこと</label>
+      <textarea id="f-situation" name="situation" rows="3" required></textarea>
+    </div>
+    <div class="field">
+      <label for="f-question">今回、一番知りたいこと</label>
+      <textarea id="f-question" name="question" rows="2" required></textarea>
+    </div>
+    <div class="field">
+      <label for="f-hope">本当はどうなりたいか</label>
+      <textarea id="f-hope" name="hope" rows="2" required></textarea>
+    </div>
+    <label class="consent">
+      <input type="checkbox" name="consent" required>
+      医療・法律・投資の断定・生死・妊娠出産・個人の特定や追跡に関わる相談ではないことを確認しました
+    </label>
+
+    <button type="submit" class="cta-button">灯りを受け取る</button>
+    <p class="cta-note">送信すると、メールアプリに下書きが開きます。内容を確認して送信してください。</p>
+  </form>
 </section>
+
+<script>
+(function () {
+  var form = document.getElementById('inquiry-form');
+  if (!form) return;
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var fd = new FormData(form);
+    var name = (fd.get('name') || '').toString();
+    var lines = [
+      'お名前: ' + name,
+      '返信用メール: ' + fd.get('email'),
+      'ご相談の分野: ' + (fd.get('theme') || ''),
+      '',
+      '【今の状況・直近であったこと】',
+      fd.get('situation'),
+      '',
+      '【今回、一番知りたいこと】',
+      fd.get('question'),
+      '',
+      '【本当はどうなりたいか】',
+      fd.get('hope')
+    ];
+    var body = lines.join('\n');
+    var subject = '灯 個別鑑定のご相談' + (name ? '（' + name + '様）' : '');
+    var mailto = 'mailto:akari.neoshaman@gmail.com'
+      + '?subject=' + encodeURIComponent(subject)
+      + '&body=' + encodeURIComponent(body);
+    window.location.href = mailto;
+  });
+})();
+</script>
 
 <footer>
   <span class="signature">灯（あかり）</span>
