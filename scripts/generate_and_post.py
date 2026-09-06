@@ -10,6 +10,7 @@
 """
 import json
 import os
+import random
 import sys
 import urllib.error
 import urllib.request
@@ -28,18 +29,23 @@ PERSONA = (
     "涙を「余った雨」と呼ぶ。灯は、その言葉を日常の言葉に訳して届ける通訳のような"
     "存在で、当てることはしない。ただ、読み手の奥でずっと鳴っている音を、"
     "風ごしに聞き取ってそっと渡す。良いこともそうでないことも隠さず伝えるが、"
-    "押しつけはしない。今扱っているテーマは「恋のこと」と「お金のこと」の2つ。"
+    "押しつけはしない。今扱っているテーマは、恋愛・金運・仕事・家族・人間関係・"
+    "自分自身のこと・これからの選択の7つ。"
 )
 
-SLOT_THEMES = {
-    "morning": "恋のこと。今日という風が運んでくる、恋愛・人間関係にまつわる気配。",
-    "noon": "お金のこと。「巡りのしるし」としてのお金の流れや、今日訪れる巡り合わせ。",
-    "night": "今日一日、読み手の奥で鳴っていたかもしれない音を代弁し、明日への一言を添える。",
+CATEGORIES = ["恋愛", "金運", "仕事", "家族", "人間関係", "自分自身のこと", "これからの選択"]
+
+SLOT_STYLES = {
+    "morning": "今日一日の始まりにふさわしい、前向きな視点で。",
+    "noon": "日中にふと立ち止まったときに、そっと響くような視点で。",
+    "night": "今日一日を振り返り、明日への一言を添える視点で。",
 }
 
 
 def build_prompt(slot: str) -> str:
-    theme = SLOT_THEMES.get(slot, SLOT_THEMES["morning"])
+    category = random.choice(CATEGORIES)
+    style = SLOT_STYLES.get(slot, SLOT_STYLES["morning"])
+    theme = f"「{category}」というテーマで、{style}"
     return (
         f"{PERSONA}\n\n"
         "この人物として、Threadsに投稿する文章を1つ作成してください。\n\n"
