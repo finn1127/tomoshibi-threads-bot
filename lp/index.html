@@ -285,6 +285,50 @@
     text-align: center;
     line-height: 1.8;
   }
+
+  .line-alt{
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto 2.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .line-alt-note{
+    font-size: 0.85rem;
+    color: #b9ac8d;
+    line-height: 1.8;
+    margin: 0 0 1.1rem;
+  }
+  .line-button{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #fff;
+    background: #06c755;
+    padding: 0.75em 1.8em;
+    border-radius: 999px;
+    box-shadow: 0 6px 20px -6px rgba(6,199,85,0.55);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .line-button:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px -6px rgba(6,199,85,0.7);
+  }
+  .line-button:focus-visible{
+    outline: 2px solid #06c755;
+    outline-offset: 3px;
+  }
+  .or-divider{
+    margin: 1.6rem 0 0;
+    font-size: 0.78rem;
+    letter-spacing: 0.2em;
+    color: #6d6480;
+  }
   .inquiry-form{
     width: 100%;
     max-width: 440px;
@@ -482,6 +526,17 @@
 <section class="cta-section">
   <span class="eyebrow">Begin</span>
   <h2>あなたのために、<br>風に尋ねます。</h2>
+
+  <div class="line-alt">
+    <p class="line-alt-note">メールアドレスの入力に抵抗がある方は、公式LINEからでもご相談いただけます。</p>
+    <a href="https://lin.ee/7RUe6KJh" target="_blank" rel="noopener noreferrer" class="line-button">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+        <path d="M12 2C6.48 2 2 5.7 2 10.2c0 4.02 3.58 7.38 8.4 8.03.33.07.77.22.88.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1.01.88.55 1.08-.46 5.82-3.43 7.94-5.87C21.55 13.34 22 11.83 22 10.2 22 5.7 17.52 2 12 2z"/>
+      </svg>
+      公式LINEで相談する
+    </a>
+    <p class="or-divider">または</p>
+  </div>
 
   <form class="inquiry-form" id="inquiry-form" method="POST" action="https://formspree.io/f/mrpgaqnz">
     <div class="field">
