@@ -80,18 +80,19 @@ def cmd_whoami(env):
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
-def cmd_post(env, text: str):
+def post_text(env, text: str, reply_to_id: str = None) -> str:
+    """テキストを投稿し、公開された投稿のidを返す。reply_to_idを渡すとそのidへのリプライになる。"""
     token = env.get("THREADS_ACCESS_TOKEN")
     user_id = env.get("THREADS_USER_ID")
     if not token or not user_id:
         print(".env に THREADS_ACCESS_TOKEN / THREADS_USER_ID が必要です", file=sys.stderr)
         sys.exit(1)
 
-    created = api_request(
-        "POST",
-        f"/{user_id}/threads",
-        {"media_type": "TEXT", "text": text, "access_token": token},
-    )
+    params = {"media_type": "TEXT", "text": text, "access_token": token}
+    if reply_to_id:
+        params["reply_to_id"] = reply_to_id
+
+    created = api_request("POST", f"/{user_id}/threads", params)
     creation_id = created.get("id")
     if not creation_id:
         print(f"投稿コンテナの作成に失敗しました: {created}", file=sys.stderr)
@@ -110,7 +111,12 @@ def cmd_post(env, text: str):
         print(f"投稿の公開に失敗しました: {published}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"投稿完了: post id = {published['id']}")
+    return published["id"]
+
+
+def cmd_post(env, text: str):
+    post_id = post_text(env, text)
+    print(f"投稿完了: post id = {post_id}")
 
 
 REDIRECT_URI = "https://localhost/"

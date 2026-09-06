@@ -7,6 +7,7 @@
   THREADS_ACCESS_TOKEN (必須) threads.pyが使用
   THREADS_USER_ID      (必須) threads.pyが使用
   SLOT                 (任意) morning / noon / night。省略時は morning
+                       morning・nightは無料鑑定の募集投稿、noonはランダム投稿
 """
 import json
 import os
@@ -85,6 +86,35 @@ SLOT_STYLES = {
     "night": "今日一日を振り返り、明日への一言を添える視点で。",
 }
 
+LP_URL = "https://finn1127.github.io/tomoshibi-threads-bot/"
+
+# 無料鑑定の募集投稿（朝・夜枠）用。詳細は notes/reference-posts.md の
+# 「無料鑑定募集型」を参照。
+RECRUITMENT_INSTRUCTIONS = (
+    "無料の個別鑑定への応募を募る投稿を作成してください。\n"
+    "以下の要素を必ず含め、毎回少し違う言い回しで書いてください（同じ文章の"
+    "使い回しは避ける）:\n"
+    "- 公式LINEへの誘導はしない、という宣言\n"
+    "- 良いことだけでなく、風から聞こえたことを全部伝える、という誠実さのアピール\n"
+    "- 鑑定の言葉は一人ひとり違う、テンプレートは使わない、というアピール\n"
+    "- フォロー・いいねをしてくれた人から先に風に尋ねる、という優先順位の説明\n"
+    "- 応募方法として「🕯️を置いて、下のリンクから、フォームに答える」という"
+    "趣旨のCTA（URLそのものは書かない。リンクはリプライに別で貼るため）\n"
+)
+
+
+def build_recruitment_prompt() -> str:
+    return (
+        f"{PERSONA}\n\n"
+        "この人物として、Threadsに投稿する文章を1つ作成してください。\n\n"
+        f"{RECRUITMENT_INSTRUCTIONS}\n"
+        "条件:\n"
+        "- 日本語、200〜400文字程度\n"
+        "- 静かで丁寧な語り口。「巡りのしるし」のような灯らしい比喩を1つ以上入れてよい\n"
+        "- 絵文字は🕯️を含めて1〜2個程度\n"
+        "- 投稿本文のみを出力する（前置き・説明・鍵カッコは付けない）\n"
+    )
+
 
 def build_prompt(slot: str) -> str:
     category = random.choice(CATEGORIES)
@@ -110,13 +140,13 @@ def build_prompt(slot: str) -> str:
     )
 
 
-def generate_text(slot: str) -> str:
+def call_claude(prompt: str) -> str:
     api_key = os.environ["ANTHROPIC_API_KEY"]
     payload = json.dumps(
         {
             "model": MODEL,
             "max_tokens": 500,
-            "messages": [{"role": "user", "content": build_prompt(slot)}],
+            "messages": [{"role": "user", "content": prompt}],
         }
     ).encode()
     req = urllib.request.Request(
@@ -147,11 +177,21 @@ def generate_text(slot: str) -> str:
 
 def main():
     slot = os.environ.get("SLOT", "morning")
-    text = generate_text(slot)
-    print(f"[{slot}] 生成された投稿文:\n{text}\n")
-
     env = threads_client.load_env()
-    threads_client.cmd_post(env, text)
+
+    if slot in ("morning", "night"):
+        text = call_claude(build_recruitment_prompt())
+        print(f"[{slot}] 募集投稿:\n{text}\n")
+        post_id = threads_client.post_text(env, text)
+        print(f"投稿完了: post id = {post_id}")
+
+        link_id = threads_client.post_text(env, LP_URL, reply_to_id=post_id)
+        print(f"リンクをリプライしました: reply id = {link_id}")
+    else:
+        text = call_claude(build_prompt(slot))
+        print(f"[{slot}] 生成された投稿文:\n{text}\n")
+        post_id = threads_client.post_text(env, text)
+        print(f"投稿完了: post id = {post_id}")
 
 
 if __name__ == "__main__":

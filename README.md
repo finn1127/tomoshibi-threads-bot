@@ -6,7 +6,7 @@ GitHub Actions + Claude API + Threads API で、占いアカウントの投稿�
 ## 構成
 
 ```
-.github/workflows/post.yml   GitHub Actionsの定時実行設定（毎日 朝8:00/昼12:30/夜20:00 JST）
+.github/workflows/post.yml   GitHub Actionsの定時実行設定（毎日 朝6:30/昼12:30/夜20:00 JST）
 scripts/threads.py           Threads APIクライアント（auth / whoami / post / refresh）
 scripts/generate_and_post.py Claude APIで投稿文を生成し、Threadsに投稿するメイン処理
 .env.example                 ローカル動作確認用の環境変数テンプレート
@@ -94,13 +94,14 @@ GitHubリポジトリの Actions タブ →「灯 自動投稿」→「Run workf
 
 ## 投稿の時間帯とテーマ
 
-`scripts/generate_and_post.py` の `SLOT_THEMES` で管理。
+`scripts/generate_and_post.py` で管理。
 
-- morning（朝8:00）: 今日一日の総合運
-- noon（昼12:30）: 恋愛運・人間関係運
-- night（夜20:00）: 一日の振り返り＋明日の開運アクション
+- morning（朝6:30）: 無料鑑定の募集投稿（本文＋リンクのリプライ）
+- noon（昼12:30）: 7テーマ×5フォーマットからランダムに1つ選んで生成
+- night（夜20:00）: 無料鑑定の募集投稿（本文＋リンクのリプライ）
 
-文言や時間帯はここを編集すれば変更できる。
+文言や時間帯はここを編集すれば変更できる。参考にした投稿の型は
+`notes/reference-posts.md` を参照。
 
 ## トークンの更新（月1回程度）
 
