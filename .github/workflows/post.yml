@@ -3,9 +3,8 @@ name: 灯 自動投稿
 on:
   schedule:
     - cron: "30 21 * * *"  # JST 06:30 (morning, 前日UTC)
+    - cron: "55 2 * * *"  # JST 11:55 (noon)
     - cron: "0 11 * * *"  # JST 20:00 (night)
-    # 昼は様子見のため一時的に停止中。安定を確認できたら復活させる。
-    # - cron: "30 3 * * *"  # JST 12:30 (noon)
   workflow_dispatch:
     inputs:
       slot:
@@ -31,7 +30,7 @@ jobs:
           else
             case "${{ github.event.schedule }}" in
               "30 21 * * *") echo "slot=morning" >> "$GITHUB_OUTPUT" ;;
-              "30 3 * * *") echo "slot=noon" >> "$GITHUB_OUTPUT" ;;
+              "55 2 * * *") echo "slot=noon" >> "$GITHUB_OUTPUT" ;;
               "0 11 * * *") echo "slot=night" >> "$GITHUB_OUTPUT" ;;
               *) echo "slot=morning" >> "$GITHUB_OUTPUT" ;;
             esac
