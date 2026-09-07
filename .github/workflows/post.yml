@@ -3,10 +3,9 @@ name: 灯 自動投稿
 on:
   schedule:
     - cron: "30 21 * * *"  # JST 06:30 (morning, 前日UTC)
-    # 新しいアプリ・アカウントのため、様子見として一時的に朝のみに減らしている。
-    # 安定して動くことを確認できたら、以下を復活させる。
+    - cron: "0 11 * * *"  # JST 20:00 (night)
+    # 昼は様子見のため一時的に停止中。安定を確認できたら復活させる。
     # - cron: "30 3 * * *"  # JST 12:30 (noon)
-    # - cron: "0 11 * * *"  # JST 20:00 (night)
   workflow_dispatch:
     inputs:
       slot:
