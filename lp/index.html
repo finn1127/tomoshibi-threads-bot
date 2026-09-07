@@ -286,21 +286,39 @@
     line-height: 1.8;
   }
 
-  .line-alt{
-    width: 100%;
+  .line-alt-note{
     max-width: 440px;
-    margin: 0 auto 2.8rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    margin: 0 auto 1.8rem;
+    font-size: 0.9rem;
+    color: #d8cdb4;
+    line-height: 1.9;
     text-align: center;
   }
-  .line-alt-note{
-    font-size: 0.85rem;
-    color: #b9ac8d;
-    line-height: 1.8;
-    margin: 0 0 1.1rem;
+
+  .guide-list{
+    max-width: 380px;
+    margin: 0 auto 2.4rem;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    text-align: left;
   }
+  .guide-list li{
+    font-size: 0.9rem;
+    color: var(--paper);
+    line-height: 1.6;
+    padding-left: 1.3em;
+    position: relative;
+  }
+  .guide-list li::before{
+    content: "🕯️";
+    position: absolute;
+    left: 0;
+    font-size: 0.8em;
+  }
+
   .line-button{
     display: inline-flex;
     align-items: center;
@@ -322,104 +340,6 @@
   .line-button:focus-visible{
     outline: 2px solid #06c755;
     outline-offset: 3px;
-  }
-  .or-divider{
-    margin: 1.6rem 0 0;
-    font-size: 0.78rem;
-    letter-spacing: 0.2em;
-    color: #6d6480;
-  }
-  .inquiry-form{
-    width: 100%;
-    max-width: 440px;
-    margin: 0 auto;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .field{
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
-  }
-
-  .field > label{
-    font-size: 0.82rem;
-    letter-spacing: 0.04em;
-    color: #cdbe9c;
-  }
-
-  .inquiry-form input[type="text"],
-  .inquiry-form input[type="email"],
-  .inquiry-form select,
-  .inquiry-form textarea{
-    font: inherit;
-    font-size: 0.98rem;
-    color: var(--paper);
-    background: rgba(247,240,226,0.06);
-    border: 1px solid var(--ink-line);
-    border-radius: 2px;
-    padding: 0.75em 0.85em;
-    resize: vertical;
-  }
-  .inquiry-form select{
-    appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, var(--flame-soft) 50%),
-                       linear-gradient(135deg, var(--flame-soft) 50%, transparent 50%);
-    background-position: calc(100% - 1.3em) center, calc(100% - 0.9em) center;
-    background-size: 5px 5px, 5px 5px;
-    background-repeat: no-repeat;
-  }
-  .inquiry-form select option{ color: #15131f; }
-
-  .inquiry-form input::placeholder,
-  .inquiry-form textarea::placeholder{ color: #7d7290; }
-
-  .inquiry-form input:focus,
-  .inquiry-form select:focus,
-  .inquiry-form textarea:focus{
-    outline: none;
-    border-color: var(--flame);
-    box-shadow: 0 0 0 3px rgba(232,169,76,0.18);
-  }
-
-  .field-row{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.2rem;
-  }
-  @media (max-width: 480px){
-    .field-row{ grid-template-columns: 1fr; }
-  }
-
-  .form-error{
-    margin: -0.6rem 0 0;
-    font-size: 0.85rem;
-    color: #e8896b;
-  }
-
-  .consent{
-    display: flex;
-    align-items: flex-start;
-    gap: 0.7em;
-    font-size: 0.82rem;
-    line-height: 1.7;
-    color: #b9ac8d;
-    cursor: pointer;
-  }
-  .consent input{
-    accent-color: var(--flame);
-    margin-top: 0.25em;
-    flex-shrink: 0;
-  }
-
-  .inquiry-form .cta-button{
-    align-self: center;
-    border: none;
-    cursor: pointer;
-    margin-top: 0.6rem;
   }
 
   footer{
@@ -477,7 +397,7 @@
 
     <div class="offer-card">
       <span class="tag">初回限定・無料</span>
-      <p>個別鑑定は初めての方に限り無料でお受けしています。フォームからのご相談内容をもとに、風に尋ねた言葉を鑑定書としてお届けします。</p>
+      <p>個別鑑定は初めての方に限り無料でお受けしています。公式LINEでのやり取りをもとに、風に尋ねた言葉をお届けします。</p>
     </div>
 
     <p class="incentive">聞かせてくれた分だけ、風は多くを教えてくれます。</p>
@@ -527,121 +447,24 @@
   <span class="eyebrow">Begin</span>
   <h2>あなたのために、<br>風に尋ねます。</h2>
 
-  <div class="line-alt">
-    <p class="line-alt-note">メールアドレスの入力に抵抗がある方は、公式LINEからでもご相談いただけます。</p>
-    <a href="https://lin.ee/7RUe6KJh" target="_blank" rel="noopener noreferrer" class="line-button">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-        <path d="M12 2C6.48 2 2 5.7 2 10.2c0 4.02 3.58 7.38 8.4 8.03.33.07.77.22.88.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1.01.88.55 1.08-.46 5.82-3.43 7.94-5.87C21.55 13.34 22 11.83 22 10.2 22 5.7 17.52 2 12 2z"/>
-      </svg>
-      公式LINEで相談する
-    </a>
-    <p class="or-divider">または</p>
-  </div>
+  <p class="line-alt-note">公式LINEでお友達追加のうえ、メッセージを送ってください。<br>次のことを教えてもらえると、より深く視ることができます。</p>
 
-  <form class="inquiry-form" id="inquiry-form" method="POST" action="https://formspree.io/f/mrpgaqnz">
-    <div class="field">
-      <label for="f-email">返信用メールアドレス</label>
-      <input type="email" id="f-email" name="email" required>
-    </div>
-    <div class="field">
-      <label for="f-email2">返信用メールアドレス（確認用）</label>
-      <input type="email" id="f-email2" name="email2" required>
-    </div>
-    <div class="field">
-      <label for="f-name">本名または呼んでほしい名前</label>
-      <input type="text" id="f-name" name="name" required>
-    </div>
-    <div class="field">
-      <label for="f-category">相談したいことの分野</label>
-      <select id="f-category" name="category" required>
-        <option value="" disabled selected hidden>選んでください</option>
-        <option>恋愛</option>
-        <option>金運</option>
-        <option>仕事</option>
-        <option>家族</option>
-        <option>人間関係</option>
-        <option>自分自身のこと</option>
-        <option>これからの選択・決断</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="f-relation">お相手がいるご相談の場合、今の関係（任意）</label>
-      <select id="f-relation" name="relation">
-        <option value="" disabled selected hidden>選んでください</option>
-        <option>現在交際中</option>
-        <option>以前交際していた</option>
-        <option>片思い</option>
-        <option>関係が不明確</option>
-        <option>配偶者</option>
-        <option>友人</option>
-        <option>知人</option>
-        <option>家族</option>
-        <option>職場関係</option>
-        <option>特定の相手はいない</option>
-      </select>
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label for="f-age">あなたの年代（任意）</label>
-        <select id="f-age" name="age">
-          <option value="">任意でどうぞ</option>
-          <option>10代</option><option>20代</option><option>30代</option>
-          <option>40代</option><option>50代</option><option>60代〜</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="f-age-partner">お相手の年代（任意）</label>
-        <select id="f-age-partner" name="agePartner">
-          <option value="">任意でどうぞ</option>
-          <option>10代</option><option>20代</option><option>30代</option>
-          <option>40代</option><option>50代</option><option>60代〜</option>
-        </select>
-      </div>
-    </div>
-    <div class="field">
-      <label for="f-situation">今の状況、直近であったこと</label>
-      <textarea id="f-situation" name="situation" rows="3" required></textarea>
-    </div>
-    <div class="field">
-      <label for="f-question">今回の鑑定で一番知りたいこと</label>
-      <textarea id="f-question" name="question" rows="2" required></textarea>
-    </div>
-    <div class="field">
-      <label for="f-hope">今後望んでる関係や状態、本当はどうなりたいか</label>
-      <textarea id="f-hope" name="hope" rows="2" required></textarea>
-    </div>
-    <label class="consent">
-      <input type="checkbox" name="consent" required>
-      「お願いとお約束」に書かれている、お受けできない相談には当てはまらないことを確認しました
-    </label>
-    <p class="form-error" id="form-error" hidden></p>
+  <ul class="guide-list">
+    <li>呼んでほしい名前</li>
+    <li>相談したいこと（恋愛・金運・仕事・家族・人間関係・自分自身のこと・これからの選択）</li>
+    <li>今の状況、直近であったこと</li>
+    <li>今回いちばん知りたいこと</li>
+    <li>本当はどうなりたいか</li>
+  </ul>
 
-    <input type="hidden" name="_subject" value="灯 個別鑑定のご相談">
-
-    <button type="submit" class="cta-button">灯りを受け取る</button>
-    <p class="cta-note">送信すると、灯（あかり）に直接届きます。</p>
-  </form>
+  <a href="https://lin.ee/7RUe6KJh" target="_blank" rel="noopener noreferrer" class="line-button">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M12 2C6.48 2 2 5.7 2 10.2c0 4.02 3.58 7.38 8.4 8.03.33.07.77.22.88.5.1.26.07.66.03.92l-.14.86c-.04.26-.2 1.01.88.55 1.08-.46 5.82-3.43 7.94-5.87C21.55 13.34 22 11.83 22 10.2 22 5.7 17.52 2 12 2z"/>
+    </svg>
+    公式LINEで話しかける
+  </a>
+  <p class="cta-note">「お願いとお約束」に当てはまらない内容であれば、どなたでもどうぞ。</p>
 </section>
-
-<script>
-(function () {
-  var form = document.getElementById('inquiry-form');
-  var errorEl = document.getElementById('form-error');
-  if (!form) return;
-
-  form.addEventListener('submit', function (e) {
-    errorEl.hidden = true;
-    var email = form.email.value.trim();
-    var email2 = form.email2.value.trim();
-    if (email !== email2) {
-      e.preventDefault();
-      errorEl.textContent = 'メールアドレスが一致しません。もう一度ご確認ください。';
-      errorEl.hidden = false;
-      form.email2.focus();
-    }
-  });
-})();
-</script>
 
 <footer>
   <span class="signature">灯（あかり）</span>
