@@ -110,8 +110,6 @@ SLOT_STYLES = {
     "night": "今日一日を振り返り、明日への一言を添える視点で。",
 }
 
-LP_URL = "https://finn1127.github.io/tomoshibi-threads-bot/"
-
 # 無料鑑定の募集投稿（朝・夜枠）用。詳細は notes/reference-posts.md の
 # 「無料鑑定募集型」を参照。
 RECRUITMENT_INSTRUCTIONS = (
@@ -121,9 +119,9 @@ RECRUITMENT_INSTRUCTIONS = (
     "- 良いことだけでなく、風から聞こえたことを全部伝える、という誠実さのアピール\n"
     "- 鑑定の言葉は一人ひとり違う、テンプレートは使わない、というアピール\n"
     "- フォロー・いいねをしてくれた「風待ちさん」から先に風に尋ねる、という優先順位の説明\n"
-    "- 応募方法として「🕯️を置いて、下のリンクから来てください」という趣旨のCTA"
-    "（URLそのものは書かない。リンクはリプライに別で貼るため。LINEという"
-    "言葉は使わず、リンク先が何かは明言しない）\n"
+    "- 応募方法として「🕯️を置いて、固定ポストのリンクからお越しください」という"
+    "趣旨のCTA（URLそのものは書かない。リンクは固定投稿にのみ貼ってあるため。"
+    "LINEという言葉は使わず、リンク先が何かは明言しない）\n"
 )
 
 
@@ -208,9 +206,6 @@ def main():
         print(f"[{slot}] 募集投稿:\n{text}\n")
         post_id = threads_client.post_text(env, text)
         print(f"投稿完了: post id = {post_id}")
-
-        link_id = threads_client.post_text(env, LP_URL, reply_to_id=post_id)
-        print(f"リンクをリプライしました: reply id = {link_id}")
     else:
         text = call_claude(build_prompt(slot))
         print(f"[{slot}] 生成された投稿文:\n{text}\n")
