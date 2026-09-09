@@ -1,12 +1,14 @@
-# 灯（占いアカウント）Threads自動運用
+# 灯（占いアカウント）Threads運用
 
-GitHub Actions + Claude API + Threads API で、占いアカウントの投稿を
-完全自動化する仕組み。PCの電源に関係なく、GitHub側で1日3回自動投稿される。
+GitHub Actions + Claude API + Threads API で、占いアカウントの投稿文生成・
+投稿を行う仕組み。GitHub Actionsのスケジュール実行（cron）は混雑時に
+2〜5時間遅延することが常態化していたため停止し、**GitHubのActionsタブから
+手動で「Run workflow」を実行する運用**に切り替えている。
 
 ## 構成
 
 ```
-.github/workflows/post.yml   GitHub Actionsの定時実行設定（毎日 朝6:30/昼11:55/夜20:00 JST）
+.github/workflows/post.yml   GitHub Actionsのワークフロー（手動実行、slotを指定）
 scripts/threads.py           Threads APIクライアント（auth / whoami / post / refresh）
 scripts/generate_and_post.py Claude APIで投稿文を生成し、Threadsに投稿するメイン処理
 .env.example                 ローカル動作確認用の環境変数テンプレート
@@ -89,19 +91,21 @@ gh secret set THREADS_USER_ID
 
 ### 5. 動作確認
 
-GitHubリポジトリの Actions タブ →「灯 自動投稿」→「Run workflow」で
-手動実行して、Threadsに投稿されるか確認する。
+GitHubリポジトリの Actions タブ →「灯 投稿（手動実行）」→「Run workflow」で
+実行して、Threadsに投稿されるか確認する。
 
-## 投稿の時間帯とテーマ
+## 投稿する
 
-`scripts/generate_and_post.py` で管理。
+GitHubリポジトリの Actions タブ →「灯 投稿（手動実行）」→「Run workflow」→
+`slot` に `morning` / `noon` / `night` のいずれかを入力して実行する。
+（Claude Codeに頼んで `gh workflow run post.yml -f slot=morning` を
+実行してもらってもよい）
 
-- morning（朝6:30）: 無料鑑定の募集投稿（「固定ポストのリンクから」と案内）
-- noon（昼11:55）: 7テーマ×フォーマットからランダムに1つ選んで生成
-- night（夜20:00）: 無料鑑定の募集投稿（「固定ポストのリンクから」と案内）
+- morning / night: 無料鑑定の募集投稿（「固定ポストのリンクから」と案内）
+- noon: 7テーマ×フォーマットからランダムに1つ選んで生成
 
-文言や時間帯はここを編集すれば変更できる。参考にした投稿の型は
-`notes/reference-posts.md` を参照。
+文言は`scripts/generate_and_post.py`を編集すれば変更できる。参考にした
+投稿の型は`notes/reference-posts.md`を参照。
 
 ## トークンの更新（月1回程度）
 

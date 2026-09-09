@@ -1,10 +1,9 @@
-name: 灯 自動投稿
+name: 灯 投稿（手動実行）
 
 on:
-  schedule:
-    - cron: "30 21 * * *"  # JST 06:30 (morning, 前日UTC)
-    - cron: "55 2 * * *"  # JST 11:55 (noon)
-    - cron: "0 11 * * *"  # JST 20:00 (night)
+  # GitHub Actionsのスケジュール実行は混雑時に2〜5時間遅延することが
+  # 常態化していたため停止。GitHubのActionsタブから手動で
+  # 「Run workflow」を実行する運用に切り替えた。
   workflow_dispatch:
     inputs:
       slot:
@@ -22,24 +21,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 投稿枠を決定
-        id: slot
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "slot=${{ inputs.slot }}" >> "$GITHUB_OUTPUT"
-          else
-            case "${{ github.event.schedule }}" in
-              "30 21 * * *") echo "slot=morning" >> "$GITHUB_OUTPUT" ;;
-              "55 2 * * *") echo "slot=noon" >> "$GITHUB_OUTPUT" ;;
-              "0 11 * * *") echo "slot=night" >> "$GITHUB_OUTPUT" ;;
-              *) echo "slot=morning" >> "$GITHUB_OUTPUT" ;;
-            esac
-          fi
-
       - name: 生成して投稿
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
-          SLOT: ${{ steps.slot.outputs.slot }}
+          SLOT: ${{ inputs.slot }}
         run: python3 scripts/generate_and_post.py
